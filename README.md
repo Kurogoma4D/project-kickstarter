@@ -1,15 +1,23 @@
 # claude-code-kickstarter
 
-Claude Code の `.claude/` ディレクトリのテンプレート集。GitHub Issue の自動実装・レビュー・マージを行うエージェントとスキルを提供します。
+Claude Code の `.claude/` ディレクトリのテンプレート集。要求のヒアリングから Issue の起票・自動実装・レビュー・マージまでを一貫して行うエージェントとスキルを提供します。
 
 ## 含まれるファイル
 
 ```
 .claude/
+├── commands/
+│   └── kickstart.md           # ワークフロー一括実行コマンド
 ├── agents/
 │   ├── code-reviewer.md       # PR コードレビューエージェント
 │   └── issue-implementer.md   # GitHub Issue 実装エージェント
 └── skills/
+    ├── template-setup/
+    │   └── SKILL.md            # プレースホルダ一括置換（セットアップ）スキル
+    ├── spec-builder/
+    │   └── SKILL.md            # 要求ヒアリング → spec.md 作成スキル
+    ├── spec-to-issues/
+    │   └── SKILL.md            # spec.md → タスク分解 → Issue 起票スキル
     └── auto-issue-worker/
         └── SKILL.md            # Issue 自動消化スキル
 ```
@@ -17,7 +25,8 @@ Claude Code の `.claude/` ディレクトリのテンプレート集。GitHub I
 ## セットアップ
 
 1. `.claude/` ディレクトリをプロジェクトルートにコピー
-2. 各ファイル内のプレースホルダを自分のプロジェクトに合わせて置換
+2. `/kickstart` を実行すると、以下のワークフロー（spec 作成 → プレースホルダ置換 → Issue 起票）を順に実行する
+   - 個別に実行したい場合は各スキルを直接呼び出す（手動でプレースホルダを置換する場合は下記の一覧を参照）
 
 ## プレースホルダ一覧
 
@@ -128,8 +137,24 @@ Rust の場合:
 
 ## ワークフロー概要
 
+`/kickstart` を実行すると、以下を順に呼び出す（各ステップで確認を挟む）。
+
 ```
-Issue 起票
+/kickstart 実行
+  ↓
+/spec-builder 実行
+  ↓
+要求をヒアリング → spec.md 作成
+  ↓
+/template-setup → spec.md を活用してプレースホルダを一括置換
+  ↓
+spec.md を元にプロジェクトの README.md を更新
+  ↓
+差分をコミット & push（spec.md・README.md・.claude/ の設定をリモートへ）
+  ↓
+/spec-to-issues 実行
+  ↓
+spec.md をタスク分解 → ユーザー承認 → Issue 起票
   ↓
 /auto-issue-worker 実行
   ↓
@@ -141,6 +166,19 @@ code-reviewer がレビュー
   ↓
 LGTM → squash merge → 次の Issue へ
 ```
+
+## コマンド・スキル一覧
+
+| コマンド | 起動 | 役割 |
+|---|---|---|
+| `kickstart` | `/kickstart` | 各スキルを順に呼び出しワークフローを一括実行する |
+
+| スキル | 起動 | 役割 |
+|---|---|---|
+| `template-setup` | `/template-setup` | ヒアリング結果に応じて全ファイルのプレースホルダを置換する |
+| `spec-builder` | `/spec-builder` | 要求をヒアリングし `spec.md` にまとめる |
+| `spec-to-issues` | `/spec-to-issues` | `spec.md` をタスク分解し GitHub Issue を起票する |
+| `auto-issue-worker` | `/auto-issue-worker` | 起票済み Issue を自動で実装・レビュー・マージする |
 
 ## ライセンス
 

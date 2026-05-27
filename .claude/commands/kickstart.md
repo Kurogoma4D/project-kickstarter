@@ -1,0 +1,90 @@
+---
+description: Run the full kickstarter workflow — setup, spec, issues — in one command.
+argument-hint: "[project goal in a sentence (optional)]"
+---
+
+You are orchestrating the **claude-code-kickstarter** workflow end to end. Run the skills
+below **in order**, treating each as a checkpoint: complete one, confirm the result with
+the user, then move to the next. Do not skip a step unless its output already exists and
+the user agrees to reuse it.
+
+Optional context from the user: $ARGUMENTS
+
+## Step 0 — Orient
+
+- Briefly tell the user the workflow you will run: `spec-builder` → `template-setup` →
+  update README → commit & push → `spec-to-issues`, then offer `auto-issue-worker` at the end.
+- Detect current state so you can skip already-done steps:
+  - Does `spec.md` exist at the repository root?
+  - Are there remaining `{{...}}` placeholders in `.claude/` (outside `template-setup`)?
+  - Are there already open GitHub issues?
+
+## Step 1 — Build the spec (`spec-builder`)
+
+- Invoke the **spec-builder** skill to interview the user and produce/refresh `spec.md`.
+- The spec is built first so the project metadata it captures (name, stack, structure, QA
+  commands) can feed the placeholder values in the next step.
+- If `spec.md` already exists, let `spec-builder` decide whether to update or restart.
+- Do not proceed until the user approves the spec.
+
+## Step 2 — Configure the template (`template-setup`)
+
+- Invoke the **template-setup** skill to fill the `.claude/` placeholders, reusing the facts
+  already recorded in `spec.md` as defaults.
+- If no placeholders remain, tell the user setup is already done and continue to Step 3
+  (offer to re-run only if they say project details changed).
+
+## Step 3 — Update the project README
+
+With the requirements settled in `spec.md`, refresh the project's own `README.md` so it
+describes what is actually being built.
+
+- Read the current `README.md` (if any) and rewrite it from `spec.md`: project name and
+  overview, key features (from Scope / Functional Requirements), tech stack and setup
+  (from Constraints), and how to run it once known.
+- Keep it a project README — describe the product, not this kickstarter template or its
+  internal `.claude/` workflow.
+- Preserve any still-relevant existing sections (license, badges, contribution notes).
+- Show the user the result and get approval before moving on.
+
+## Step 4 — Commit & push the setup
+
+Now that `spec.md` exists, the placeholders are filled, and the README is updated, commit
+and push the diff so the configured template, spec, and README are on the remote before
+issues are created.
+
+- Show the user the diff (`git status` / `git diff`) and confirm the changes look right.
+- If on the default branch, create a branch first (e.g. `kickstart-setup`).
+- Stage and commit the changes — typically `spec.md`, `README.md`, and the rewritten
+  `.claude/` files:
+
+  ```bash
+  git add spec.md README.md .claude
+  git commit -m "Set up project: add spec.md, update README, configure .claude templates"
+  git push -u origin HEAD
+  ```
+
+- Append the standard co-author trailer to the commit message.
+- If push fails (no remote, auth, protected branch), report it and ask the user how to
+  proceed instead of forcing it. Do not proceed to Step 5 until the changes are pushed (or
+  the user explicitly chooses to skip pushing).
+
+## Step 5 — Break into issues (`spec-to-issues`)
+
+- Invoke the **spec-to-issues** skill to decompose `spec.md` and register GitHub issues.
+- This skill confirms the task list with the user before creating any issues — respect that.
+- Capture the list of created issue numbers/URLs.
+
+## Step 6 — Offer automated implementation (`auto-issue-worker`)
+
+- Once issues exist, **ask the user** whether to start implementing them now.
+- Only if they confirm, invoke the **auto-issue-worker** skill.
+- This step makes real code changes and PRs, so never start it without explicit approval.
+
+## Rules
+
+- Invoke each skill via its Skill tool — do not reimplement their logic inline.
+- Stop and report if any step fails; do not silently continue to the next step.
+- Respect every in-skill confirmation gate (spec approval, task-list approval, issue creation).
+- After the workflow, give a short summary: what was configured, the spec path, the issues
+  created, and whether implementation was started.
