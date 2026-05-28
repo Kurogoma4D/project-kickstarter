@@ -38,8 +38,26 @@ has already answered:
 4. **Out of scope** — Explicitly what will *not* be built now (prevents scope creep).
 5. **Functional requirements** — Concrete behaviors, user flows, inputs/outputs.
 6. **Non-functional requirements** — Performance, security, accessibility, scalability, i18n.
-7. **Constraints** — Tech stack, platforms, deadlines, dependencies, existing systems.
-8. **Open questions / risks** — Unknowns to resolve before or during implementation.
+7. **Supply-chain security** — How dependencies, the build pipeline, and tooling are kept
+   trustworthy (see below). Capture this so `/supply-chain-guard` can enforce it later.
+8. **Constraints** — Tech stack, platforms, deadlines, dependencies, existing systems.
+9. **Open questions / risks** — Unknowns to resolve before or during implementation.
+
+When covering **Supply-chain security**, gather the policy the project wants to hold itself
+to so it can be set up during environment construction rather than bolted on later:
+
+- Package manager and lockfile policy (committed lockfiles, frozen/locked installs,
+  exact-version pinning).
+- Install-time script policy (whether `postinstall`-style scripts are allowed, and for which
+  packages) and the allowed package registries (to prevent dependency confusion).
+- Which audit/scanning tools run and at what severity gate (e.g. `npm audit`, `pip-audit`,
+  `osv-scanner`, `cargo audit`, `govulncheck`).
+- CI hardening expectations (SHA-pinned actions, least-privilege tokens, dependency-review,
+  Dependabot/Renovate).
+- MCP servers and other agent tooling that are trusted, and how new ones get vetted.
+
+If the user has no policy yet, propose sensible defaults (commit lockfiles, frozen installs,
+pin actions to SHA, run an audit in CI) and record what they accept.
 
 When covering **Overview** and **Constraints**, also gather the project metadata that the
 `template-setup` skill needs to fill the `.claude/` placeholders, so the same interview
@@ -90,7 +108,14 @@ Omit sections that genuinely do not apply, but keep the heading order.
 ## 6. Non-Functional Requirements
 - <Performance / security / accessibility / scalability / ...>
 
-## 7. Constraints
+## 7. Supply-Chain Security
+- Dependencies: <committed lockfiles, frozen/locked installs, exact-version pinning>
+- Install scripts & registries: <postinstall policy, allowed registries>
+- Auditing: <tools and severity gate, e.g. osv-scanner / npm audit in CI>
+- CI hardening: <SHA-pinned actions, least-privilege tokens, dependency-review, Dependabot/Renovate>
+- Trusted tooling: <vetted MCP servers / agents and how new ones are approved>
+
+## 8. Constraints
 ### Project metadata
 - Repository: `<github-owner>/<github-repo>` (if known)
 - Structure: <directory / module layout>
@@ -103,7 +128,7 @@ Omit sections that genuinely do not apply, but keep the heading order.
 ### Other constraints
 - <Platform, deadline, existing system, ...>
 
-## 8. Open Questions & Risks
+## 9. Open Questions & Risks
 - <Unresolved question or risk>
 ```
 
