@@ -13,7 +13,8 @@ Optional context from the user: $ARGUMENTS
 ## Step 0 — Orient
 
 - Briefly tell the user the workflow you will run: `spec-builder` → `template-setup` →
-  update README → commit & push → `spec-to-issues`, then offer `auto-issue-worker` at the end.
+  update README → commit & push → `spec-to-issues`, then offer `auto-issue-worker`, and
+  optionally `pentest` once enough is implemented.
 - Detect current state so you can skip already-done steps:
   - Does `spec.md` exist at the repository root?
   - Are there remaining `{{...}}` placeholders in `.claude/` (outside `template-setup`)?
@@ -80,6 +81,15 @@ issues are created.
 - Once issues exist, **ask the user** whether to start implementing them now.
 - Only if they confirm, invoke the **auto-issue-worker** skill.
 - This step makes real code changes and PRs, so never start it without explicit approval.
+
+## Step 7 — Penetration test (`pentest`, optional)
+
+- Once enough of the project is implemented to be worth probing, **ask the user** whether to
+  run an authorized penetration test.
+- Only if they confirm, invoke the **pentest** skill. It combines static analysis and dynamic
+  testing against the locally-run app, then files confirmed vulnerabilities as GitHub issues.
+- The created security issues can be fed back into `/auto-issue-worker` to drive the fixes.
+- Skip this step if there is not yet enough implemented to test meaningfully.
 
 ## Rules
 
