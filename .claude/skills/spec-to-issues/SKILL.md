@@ -67,6 +67,7 @@ From: <spec section, e.g. FR-2 / Non-Functional Requirements>
 ## Acceptance Criteria
 - [ ] <Verifiable outcome>
 - [ ] <Verifiable outcome>
+- [ ] E2E behavior is verified and guaranteed at the completion of this task
 
 ## Dependencies
 - <Depends on #<n>, or "None">
@@ -83,6 +84,8 @@ Rules for issue creation:
 - Apply consistent labels (e.g. `feature`, `enhancement`, `chore`, `docs`, `test`).
   Create missing labels with `gh label create` if needed, after confirming with the user.
 - The **Dependencies** section is required — `/auto-issue-worker` reads it to decide ordering.
+- Every issue's **Acceptance Criteria** must include the item
+  "E2E behavior is verified and guaranteed at the completion of this task" as a completion condition.
 
 ### Step 5 — Report
 
