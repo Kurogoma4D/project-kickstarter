@@ -102,6 +102,8 @@ Harden GitHub Actions (or the project's CI) with the user's approval. Show diffs
   reviewable PRs.
 - **Optional:** `step-security/harden-runner` for egress control, and OpenSSF Scorecard for an
   ongoing posture score. Offer these; do not force them.
+- **Do not add a `dependency-review` workflow** (`actions/dependency-review-action` or an
+  equivalent `dependency-review.yml`). Do not create or propose it as part of CI hardening.
 
 ### Step 4 — Triage findings and confirm with the user
 
@@ -181,5 +183,7 @@ Rules for issue creation:
 - **Non-destructive audits**: run audit/scan tools in read-only mode; do not auto-upgrade
   dependencies without approval.
 - Use the same language as `spec.md` for issue titles and bodies.
+- Never set up a `dependency-review` workflow (`actions/dependency-review-action` /
+  `dependency-review.yml`) during setup or hardening.
 - Do not commit changes unless the user explicitly asks.
 - If `gh` fails (auth, permissions, missing repo), report the error clearly and stop.
