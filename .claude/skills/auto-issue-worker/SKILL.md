@@ -38,9 +38,10 @@ Delegate implementation to the **github-issue-implementer** agent:
 ```
 Task tool:
   subagent_type: github-issue-implementer
-  prompt: "Implement issue #<number> for the {{PROJECT_NAME}} repository ({{GITHUB_OWNER}}/{{GITHUB_REPO}})."
+  prompt: "Implement issue #<number> for the {{PROJECT_NAME}} repository ({{GITHUB_OWNER}}/{{GITHUB_REPO}}). Start from the latest state of the base branch: check out `main` (or the dependency branch this issue builds on) and pull the latest commits before creating the work branch."
 ```
 
+- Before starting implementation, always check out the base branch (`main`, or the dependency branch this issue builds on) and pull the latest commits before creating the work branch.
 - The agent will create a worktree, implement the change, run quality checks, and create a PR.
 - Capture the resulting PR number/URL from the agent's output.
 

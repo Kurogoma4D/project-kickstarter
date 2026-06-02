@@ -52,7 +52,7 @@ to so it can be set up during environment construction rather than bolted on lat
   packages) and the allowed package registries (to prevent dependency confusion).
 - Which audit/scanning tools run and at what severity gate (e.g. `npm audit`, `pip-audit`,
   `osv-scanner`, `cargo audit`, `govulncheck`).
-- CI hardening expectations (SHA-pinned actions, least-privilege tokens, dependency-review,
+- CI hardening expectations (SHA-pinned actions, least-privilege tokens,
   Dependabot/Renovate).
 - MCP servers and other agent tooling that are trusted, and how new ones get vetted.
 
@@ -112,7 +112,7 @@ Omit sections that genuinely do not apply, but keep the heading order.
 - Dependencies: <committed lockfiles, frozen/locked installs, exact-version pinning>
 - Install scripts & registries: <postinstall policy, allowed registries>
 - Auditing: <tools and severity gate, e.g. osv-scanner / npm audit in CI>
-- CI hardening: <SHA-pinned actions, least-privilege tokens, dependency-review, Dependabot/Renovate>
+- CI hardening: <SHA-pinned actions, least-privilege tokens, Dependabot/Renovate>
 - Trusted tooling: <vetted MCP servers / agents and how new ones are approved>
 
 ## 8. Constraints
