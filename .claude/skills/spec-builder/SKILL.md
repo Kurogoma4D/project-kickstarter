@@ -94,7 +94,18 @@ serves both purposes. Capture concretely:
 - Directory / module structure of the codebase (→ `PROJECT_STRUCTURE`).
 - Language and version, key libraries/frameworks (→ `LANGUAGE_VERSION_NOTE`,
   `KEY_DEPENDENCIES`, `TECH_STACK`).
+- Package manager and surrounding tooling — the developer environment the project standardizes on:
+  - Package manager and its version (e.g. `npm`/`pnpm`/`yarn`, `uv`/`poetry`/`pip`, `cargo`, `go mod`),
+    and how it is pinned (e.g. `packageManager` field, `.tool-versions`).
+  - Language/runtime version manager (e.g. `mise`/`asdf`/`nvm`/`pyenv`, `rustup`).
+  - Linter / formatter / type checker (e.g. ESLint, Biome, Ruff, gofmt, clippy) and the task runner
+    that invokes them (e.g. `make`, `just`, npm scripts).
 - Build / lint / format / test commands run before a PR (→ `QA_COMMANDS`).
+
+When the user has not chosen these yet, propose a concrete option that fits the language and
+ecosystem (e.g. `pnpm` + Biome for a TypeScript project, `uv` + Ruff for Python) and confirm it,
+rather than leaving the tooling unspecified. Keep this consistent with the package-manager and
+registry policy gathered under **Supply-chain security**.
 
 Record these in the **Constraints** section so `template-setup` can read them back later.
 
@@ -164,6 +175,9 @@ Omit sections that genuinely do not apply, but keep the heading order.
 ### Tech stack
 - Language: <language and version>
 - Frameworks / key dependencies: <list>
+- Package manager: <tool and version, and how it is pinned>
+- Version manager: <runtime/language version manager, if any>
+- Lint / format / type check: <tools and the task runner that invokes them>
 - Tooling (QA commands): <build / lint / format / test commands>
 
 ### Other constraints
