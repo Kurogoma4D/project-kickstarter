@@ -37,11 +37,14 @@ has already answered:
 3. **Scope** — Core features in scope for this iteration.
 4. **Out of scope** — Explicitly what will *not* be built now (prevents scope creep).
 5. **Functional requirements** — Concrete behaviors, user flows, inputs/outputs.
-6. **Non-functional requirements** — Performance, security, accessibility, scalability, i18n.
-7. **Supply-chain security** — How dependencies, the build pipeline, and tooling are kept
+6. **Design & branding** — For projects with a user-facing frontend, the visual direction
+   and branding assets to produce (see below). Skip entirely if the project has no UI
+   (e.g. a library or backend-only service).
+7. **Non-functional requirements** — Performance, security, accessibility, scalability, i18n.
+8. **Supply-chain security** — How dependencies, the build pipeline, and tooling are kept
    trustworthy (see below). Capture this so `/supply-chain-guard` can enforce it later.
-8. **Constraints** — Tech stack, platforms, deadlines, dependencies, existing systems.
-9. **Open questions / risks** — Unknowns to resolve before or during implementation.
+9. **Constraints** — Tech stack, platforms, deadlines, dependencies, existing systems.
+10. **Open questions / risks** — Unknowns to resolve before or during implementation.
 
 When covering **Supply-chain security**, gather the policy the project wants to hold itself
 to so it can be set up during environment construction rather than bolted on later:
@@ -58,6 +61,29 @@ to so it can be set up during environment construction rather than bolted on lat
 
 If the user has no policy yet, propose sensible defaults (commit lockfiles, frozen installs,
 pin actions to SHA, run an audit in CI) and record what they accept.
+
+When covering **Design & branding**, gather the visual direction and the branding assets the
+project wants, framed through the `frontend-design` skill's perspective (commit to a bold,
+context-specific aesthetic rather than generic AI defaults). This step only records the
+direction and the deliverables in `spec.md`; it never produces UI code or assets — those are
+built later when `/spec-to-issues` turns this section into issues and `/auto-issue-worker`
+implements them with the `frontend-design` skill. Capture:
+
+- Aesthetic direction and tone — pick a clear conceptual flavor (e.g. minimal, maximalist,
+  editorial, brutalist, retro-futuristic, luxury, playful) and the feeling the product should
+  evoke for its target audience.
+- Typography — distinctive display/body font intentions (avoid generic Inter/Roboto/Arial
+  defaults unless the user explicitly requires them).
+- Color & theme — dominant colors and accents, light/dark intent.
+- The branding assets to deliver, recording each as a concrete deliverable so it becomes an issue:
+  - Design tokens — color palette, typographic scale, spacing/radii, and other base design-system tokens.
+  - UI mockups — prototypes/mockups of the key screens (HTML/CSS or framework components).
+  - Logo & icons — logo, app icon, favicon, and other visual identifiers.
+  - Brand guide — a brand-guidelines document covering tone & manner, logo usage, and color rules.
+
+If the user has no design direction yet, propose a concrete aesthetic option tied to the
+product's purpose and audience and confirm it, rather than defaulting to a generic look.
+Skip this area entirely when the project has no user-facing frontend.
 
 When covering **Overview** and **Constraints**, also gather the project metadata that the
 `template-setup` skill needs to fill the `.claude/` placeholders, so the same interview
@@ -105,17 +131,32 @@ Omit sections that genuinely do not apply, but keep the heading order.
 ### FR-1: <Title>
 - <Behavior, user flow, inputs/outputs, acceptance criteria>
 
-## 6. Non-Functional Requirements
+## 6. Design & Branding
+> Omit this whole section if the project has no user-facing frontend.
+> To be implemented with the `frontend-design` skill via the issues created from this section.
+
+### Direction
+- Aesthetic & tone: <conceptual flavor and the feeling to evoke for the target audience>
+- Typography: <distinctive display/body font intentions>
+- Color & theme: <dominant colors, accents, light/dark intent>
+
+### Branding assets to deliver
+- DA-1: Design tokens — <color palette, typographic scale, spacing/radii, base tokens>
+- DA-2: UI mockups — <key screens to prototype>
+- DA-3: Logo & icons — <logo, app icon, favicon, other identifiers>
+- DA-4: Brand guide — <tone & manner, logo usage, color rules>
+
+## 7. Non-Functional Requirements
 - <Performance / security / accessibility / scalability / ...>
 
-## 7. Supply-Chain Security
+## 8. Supply-Chain Security
 - Dependencies: <committed lockfiles, frozen/locked installs, exact-version pinning>
 - Install scripts & registries: <postinstall policy, allowed registries>
 - Auditing: <tools and severity gate, e.g. osv-scanner / npm audit in CI>
 - CI hardening: <SHA-pinned actions, least-privilege tokens, Dependabot/Renovate>
 - Trusted tooling: <vetted MCP servers / agents and how new ones are approved>
 
-## 8. Constraints
+## 9. Constraints
 ### Project metadata
 - Repository: `<github-owner>/<github-repo>` (if known)
 - Structure: <directory / module layout>
@@ -128,12 +169,12 @@ Omit sections that genuinely do not apply, but keep the heading order.
 ### Other constraints
 - <Platform, deadline, existing system, ...>
 
-## 9. Open Questions & Risks
+## 10. Open Questions & Risks
 - <Unresolved question or risk>
 ```
 
-Number functional requirements (`FR-1`, `FR-2`, …) so the `spec-to-issues` skill can
-reference them when creating issues.
+Number functional requirements (`FR-1`, `FR-2`, …) and branding assets (`DA-1`, `DA-2`, …)
+so the `spec-to-issues` skill can reference them when creating issues.
 
 ### Step 4 — Review with the user
 
