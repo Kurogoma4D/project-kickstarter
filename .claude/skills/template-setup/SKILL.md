@@ -118,6 +118,26 @@ grep -rno '{{[A-Z_]*}}' .claude --include='*.md' \
 - Report a summary of placeholder → value mappings and the files changed.
 - Tell the user the next step: run `/spec-builder` to start gathering requirements.
 
+### Step 6 — Record the template sync point
+
+So that `/template-update` can later pull upstream template changes with a 3-way merge,
+record the commit this repo currently matches in `.claude/.template-version`. Fetch the
+template HEAD (this repo was just created from it, so HEAD is the correct base):
+
+```bash
+TEMPLATE_REPO=https://github.com/Kurogoma4D/claude-code-kickstarter.git
+git fetch --no-tags "$TEMPLATE_REPO" main && git rev-parse FETCH_HEAD
+```
+
+Write `.claude/.template-version` (skip silently if the fetch fails — `/template-update`
+can bootstrap it later):
+
+```
+TEMPLATE_REPO=https://github.com/Kurogoma4D/claude-code-kickstarter.git
+TEMPLATE_REF=main
+TEMPLATE_BASE_SHA=<the sha printed above>
+```
+
 ## Rules
 
 - **Never** modify files under `.claude/skills/template-setup/` — that would corrupt this
