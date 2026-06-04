@@ -3,7 +3,7 @@ description: Run the full kickstarter workflow — setup, spec, issues — in on
 argument-hint: "[project goal in a sentence (optional)]"
 ---
 
-You are orchestrating the **claude-code-kickstarter** workflow end to end. Run the skills
+You are orchestrating the **project-kickstarter** workflow end to end. Run the skills
 below **in order**, treating each as a checkpoint: complete one, confirm the result with
 the user, then move to the next. Do not skip a step unless its output already exists and
 the user agrees to reuse it.

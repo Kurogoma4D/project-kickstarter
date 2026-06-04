@@ -125,7 +125,7 @@ record the commit this repo currently matches in `.claude/.template-version`. Fe
 template HEAD (this repo was just created from it, so HEAD is the correct base):
 
 ```bash
-TEMPLATE_REPO=https://github.com/Kurogoma4D/claude-code-kickstarter.git
+TEMPLATE_REPO=https://github.com/Kurogoma4D/project-kickstarter.git
 git fetch --no-tags "$TEMPLATE_REPO" main && git rev-parse FETCH_HEAD
 ```
 
@@ -133,7 +133,7 @@ Write `.claude/.template-version` (skip silently if the fetch fails — `/templa
 can bootstrap it later):
 
 ```
-TEMPLATE_REPO=https://github.com/Kurogoma4D/claude-code-kickstarter.git
+TEMPLATE_REPO=https://github.com/Kurogoma4D/project-kickstarter.git
 TEMPLATE_REF=main
 TEMPLATE_BASE_SHA=<the sha printed above>
 ```

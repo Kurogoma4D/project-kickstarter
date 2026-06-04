@@ -1,4 +1,4 @@
-# claude-code-kickstarter
+# project-kickstarter
 
 Claude Code の `.claude/` ディレクトリのテンプレート集。要求のヒアリングから Issue の起票・自動実装・レビュー・マージまでを一貫して行うエージェントとスキルを提供します。
 

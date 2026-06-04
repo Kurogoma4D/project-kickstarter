@@ -37,7 +37,7 @@ The sync point is recorded in `.claude/.template-version` (committed in the work
 **not** present in the template itself):
 
 ```
-TEMPLATE_REPO=https://github.com/Kurogoma4D/claude-code-kickstarter.git
+TEMPLATE_REPO=https://github.com/Kurogoma4D/project-kickstarter.git
 TEMPLATE_REF=main
 TEMPLATE_BASE_SHA=<commit sha last synced to>
 ```
@@ -53,7 +53,7 @@ Read `.claude/.template-version` if it exists and parse the three values.
 
 If it is **missing** (e.g. this repo predates the marker), bootstrap it:
 
-- Default `TEMPLATE_REPO` to `https://github.com/Kurogoma4D/claude-code-kickstarter.git`
+- Default `TEMPLATE_REPO` to `https://github.com/Kurogoma4D/project-kickstarter.git`
   and `TEMPLATE_REF` to `main`; confirm with the user via `AskUserQuestion` if unsure.
 - The base SHA is the template commit this repo was originally created from. Fetch the
   template (Step 2) and show recent commits so the user can pick it:
