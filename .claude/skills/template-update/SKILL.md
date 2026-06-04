@@ -18,6 +18,11 @@ allowed-tools:
 You bring updates from the upstream kickstarter template into a working repository that was
 created from it (via GitHub's "Use this template", so there is **no** shared git history).
 
+The template ships files for both Claude Code and Codex. The template-owned paths are
+`.claude/` (Claude skills and subagents), `.agents/skills` (a symlink to `.claude/skills`),
+and `.codex/agents/*.toml` (Codex subagents). Skills and both subagent formats are all source
+files carrying `{{...}}` placeholders, so all of them are merged the same way.
+
 The working repo's `.claude/` files have had their `{{...}}` placeholders replaced with real
 project values by `/template-setup`. A naive overwrite would lose those values, so you apply
 the template's changes with a **per-file 3-way merge**:
@@ -37,7 +42,7 @@ The sync point is recorded in `.claude/.template-version` (committed in the work
 **not** present in the template itself):
 
 ```
-TEMPLATE_REPO=https://github.com/Kurogoma4D/claude-code-kickstarter.git
+TEMPLATE_REPO=https://github.com/Kurogoma4D/project-kickstarter.git
 TEMPLATE_REF=main
 TEMPLATE_BASE_SHA=<commit sha last synced to>
 ```
@@ -53,7 +58,7 @@ Read `.claude/.template-version` if it exists and parse the three values.
 
 If it is **missing** (e.g. this repo predates the marker), bootstrap it:
 
-- Default `TEMPLATE_REPO` to `https://github.com/Kurogoma4D/claude-code-kickstarter.git`
+- Default `TEMPLATE_REPO` to `https://github.com/Kurogoma4D/project-kickstarter.git`
   and `TEMPLATE_REF` to `main`; confirm with the user via `AskUserQuestion` if unsure.
 - The base SHA is the template commit this repo was originally created from. Fetch the
   template (Step 2) and show recent commits so the user can pick it:
@@ -83,10 +88,10 @@ If `$NEW` equals `TEMPLATE_BASE_SHA`, the repo is already up to date — report 
 
 ### Step 3 — Compute the set of changed template files
 
-List `.claude/` files that differ between the base and the latest template commit:
+List the template-owned files that differ between the base and the latest template commit:
 
 ```bash
-git diff --name-status "$TEMPLATE_BASE_SHA" "$NEW" -- .claude/
+git diff --name-status "$TEMPLATE_BASE_SHA" "$NEW" -- .claude/ .agents/ .codex/
 ```
 
 Classify each path:
@@ -95,7 +100,12 @@ Classify each path:
 - **Added** (in new only) → new template file (Step 4b).
 - **Deleted** (in base only) → propose removal (Step 4c).
 
-Ignore `.claude/.template-version` itself — it is local-only and never comes from the template.
+Notes:
+
+- `.codex/agents/*.toml` are source files with the same placeholders as `.claude/agents/*.md`,
+  so merge them the same way.
+- The `.agents/skills` symlink is committed as a symlink — restore it if missing.
+- Ignore `.claude/.template-version` itself — it is local-only and never comes from the template.
 
 ### Step 4 — Apply changes per file
 
@@ -129,16 +139,18 @@ whether to delete them locally; only remove the ones they confirm.
 - Confirm no conflict markers remain anywhere:
 
   ```bash
-  grep -rn '^<<<<<<< \|^>>>>>>> \|^||||||| ' .claude --include='*.md' || echo "clean"
+  grep -rn '^<<<<<<< \|^>>>>>>> \|^||||||| ' .claude .codex/agents || echo "clean"
   ```
 
-- Show the user `git diff -- .claude/` so they can review exactly what changed.
+- Show the user `git diff -- .claude/ .agents/ .codex/` so they can review exactly what
+  changed.
 - If any placeholders were re-introduced (added files, or template lines that re-added a
   token), report them:
 
   ```bash
   grep -rno '{{[A-Z_]*}}' .claude --include='*.md' \
     | grep -v '.claude/skills/template-setup/'
+  grep -rno '{{[A-Z_]*}}' .codex/agents 2>/dev/null
   ```
 
 ### Step 6 — Record the new base and report
@@ -160,7 +172,10 @@ Then summarize:
 
 ## Rules
 
-- Operate only inside `.claude/`. Never touch application code or other project files.
+- Operate only inside the template-owned paths (`.claude/`, `.agents/`, `.codex/`). Never
+  touch application code or other project files, including the project's own `README.md`.
+- Keep the two subagent formats consistent — `.claude/agents/*.md` and `.codex/agents/*.toml`
+  describe the same agents, so a change merged into one usually has a counterpart in the other.
 - Preserve filled placeholder values — when resolving a conflict, the working repo's value
   wins over the template's placeholder token.
 - Do not add a permanent git remote; fetch by URL into `FETCH_HEAD`.
