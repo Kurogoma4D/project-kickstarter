@@ -1,4 +1,5 @@
 ---
+name: kickstart
 description: Run the full kickstarter workflow — setup, spec, issues — in one command.
 argument-hint: "[project goal in a sentence (optional)]"
 ---

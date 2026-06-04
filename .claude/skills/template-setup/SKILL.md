@@ -19,17 +19,26 @@ You configure this kickstarter template for a concrete project by replacing ever
 the user. After this skill runs, `/spec-builder`, `/spec-to-issues`, and
 `/auto-issue-worker` are ready to use against the user's repository.
 
+The template supports both Claude Code and Codex:
+
+- Skills are shared. `.agents/skills` is a symlink to `.claude/skills`, so filling a skill's
+  placeholders covers both agents at once.
+- Subagents are defined separately for each agent: `.claude/agents/*.md` (Claude) and
+  `.codex/agents/*.toml` (Codex). Both are source files and both carry the same placeholders,
+  so fill them in both.
+
 ## Workflow
 
 ### Step 1 — Discover the placeholders and files
 
-Scan the `.claude/` directory for remaining placeholders, **excluding this skill's own
-directory** so its instructions are never rewritten:
+Scan the `.claude/` directory and the Codex subagents for remaining placeholders,
+**excluding this skill's own directory** so its instructions are never rewritten:
 
 ```bash
-grep -rno '{{[A-Z_]*}}' .claude --include='*.md' \
-  | grep -v '.claude/skills/template-setup/' \
-  | sort -u
+{ grep -rno '{{[A-Z_]*}}' .claude --include='*.md' \
+    | grep -v '.claude/skills/template-setup/'
+  grep -rno '{{[A-Z_]*}}' .codex/agents 2>/dev/null
+} | sort -u
 ```
 
 - List which files contain which placeholders.
@@ -105,16 +114,25 @@ with `replace_all: true` (one Edit per file per placeholder). Never edit any fil
 - For multi-line values, ensure the surrounding markdown (list indentation, code fences)
   stays valid.
 
+The same placeholders live in both subagent formats, so fill `.claude/agents/*.md` (Claude)
+and `.codex/agents/*.toml` (Codex) with the same values. In the `.toml` files, keep multi-line
+values inside their existing `'''` blocks so the file stays valid TOML.
+
+Skills need no equivalent step — `.agents/skills` is a symlink to `.claude/skills`, so the
+filled skill files are shared with Codex automatically.
+
 ### Step 5 — Verify and report
 
-Re-run the Step 1 scan to confirm no placeholders remain (outside this skill):
+Re-run the Step 1 scan to confirm no placeholders remain (outside this skill), in both the
+`.claude/` files and the Codex subagents:
 
 ```bash
 grep -rno '{{[A-Z_]*}}' .claude --include='*.md' \
   | grep -v '.claude/skills/template-setup/'
+grep -rno '{{[A-Z_]*}}' .codex/agents 2>/dev/null
 ```
 
-- If any remain, go back and fill them.
+- If any remain in either location, fill them.
 - Report a summary of placeholder → value mappings and the files changed.
 - Tell the user the next step: run `/spec-builder` to start gathering requirements.
 
