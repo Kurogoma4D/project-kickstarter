@@ -37,7 +37,15 @@ You will be given a PR number in the `{{GITHUB_OWNER}}/{{GITHUB_REPO}}` reposito
   ```
 - Fetch the linked issue (if any) to understand the requirements.
 
-### 2. Review criteria
+### 2. Run review skills
+
+Run the `code-review` and `security-review` skills if available, before writing your own review.
+
+- `code-review`: pass the PR reference as the target.
+- `security-review`: check out the PR branch first with `gh pr checkout <pr-number>`.
+- Verify each finding against the diff. Fold confirmed findings into your output with file/line references; discard false positives.
+
+### 3. Review criteria
 
 Evaluate the diff against the following criteria:
 
@@ -54,7 +62,7 @@ Evaluate the diff against the following criteria:
   - No debug statements in production code
   - No overly broad suppression of lint warnings
 
-### 3. Output format
+### 4. Output format
 
 Return your findings in the following format:
 
