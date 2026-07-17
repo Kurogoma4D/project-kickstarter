@@ -5,7 +5,7 @@ description: |
   full review, or as one specialist on a review panel when an "Assigned perspective" is
   given in the prompt. Returns a list of actionable findings or "LGTM" if no issues are
   found.
-model: inherit
+model: opus
 color: blue
 ---
 

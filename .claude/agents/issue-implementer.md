@@ -1,7 +1,7 @@
 ---
 name: github-issue-implementer
 description: "Use this agent when the user provides a GitHub issue number and requests implementation of that issue. This includes scenarios where:\n\n- The user explicitly provides an issue number (e.g., 'Implement issue #42', 'Work on issue 123', 'Fix GH-56')\n- The user asks to implement features or fixes described in a specific GitHub issue\n- The user requests a complete workflow from issue analysis to PR creation\n- The user wants to set up a dedicated worktree for issue-based development\n\nExamples:\n\n<example>\nuser: \"Please implement issue #42\"\nassistant: \"I'll use the github-issue-implementer agent to handle the complete implementation workflow for issue #42, including setting up a worktree, implementing the changes, running quality checks, and creating a PR.\"\n</example>\n\n<example>\nuser: \"Can you work on GH-123?\"\nassistant: \"Let me launch the github-issue-implementer agent to analyze issue #123 and implement the requested changes following the complete workflow.\"\n</example>\n\n<example>\nuser: \"I need to fix issue 56 from the repository\"\nassistant: \"I'll use the github-issue-implementer agent to handle this. It will create a dedicated worktree, implement the fix based on issue #56's requirements, run all quality checks, and prepare a pull request.\"\n</example>"
-model: inherit
+model: sonnet
 color: green
 ---
 
