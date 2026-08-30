@@ -67,10 +67,11 @@ From: <spec section, e.g. FR-2 / Non-Functional Requirements>
 ## Acceptance Criteria
 - [ ] <Verifiable outcome>
 - [ ] <Verifiable outcome>
-- [ ] E2E behavior is verified and guaranteed at the completion of this task
+- [ ] <How the behaviour is verified: the automated test that covers it, or the manual
+      steps to reproduce it>
 
 ## Dependencies
-- <Depends on #<n>, or "None">
+Depends on: <#<n>, #<n> — or "none">
 EOF
 )"
 ```
@@ -83,9 +84,16 @@ Rules for issue creation:
 - Keep titles imperative and concise (e.g. "Add user authentication endpoint").
 - Apply consistent labels (e.g. `feature`, `enhancement`, `chore`, `docs`, `test`).
   Create missing labels with `gh label create` if needed, after confirming with the user.
-- The **Dependencies** section is required — `/auto-issue-worker` reads it to decide ordering.
-- Every issue's **Acceptance Criteria** must include the item
-  "E2E behavior is verified and guaranteed at the completion of this task" as a completion condition.
+- The **Dependencies** section is required — `/auto-issue-worker` reads it to decide
+  ordering. Write the line in exactly the form `Depends on: #3, #7` (or `Depends on: none`);
+  the flow greps that line instead of reading whole issue bodies.
+- Every issue's **Acceptance Criteria** must say how the change is verified, with a check the
+  implementer can actually run in this project — normally an automated test at the level the
+  change lives at.
+- Require end-to-end verification only where the project already has a harness that runs it.
+  Where it does not, ask for the manual verification steps in the PR description instead, and
+  make building that harness its own task. An acceptance criterion nothing can execute is
+  either skipped or answered with a guess.
 
 ### Step 5 — Report
 
@@ -98,5 +106,7 @@ Rules for issue creation:
 - Each issue must be self-contained: a developer (or the issue-implementer agent) should be
   able to implement it from the issue body plus `spec.md` alone.
 - Keep the dependency graph acyclic — flag and resolve any circular dependencies with the user.
+- Order the tasks so the verification harnesses a later task depends on (test runner, CI
+  workflow, E2E setup) come early enough to be usable.
 - Use the same language as `spec.md` for issue titles and bodies.
 - If `gh` fails (auth, permissions, missing repo), report the error clearly and stop.
