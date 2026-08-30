@@ -211,9 +211,13 @@ issue-implementer（Tech Specialist）が Issue ごとに worktree で並列実�
   ↓
 code-reviewer が観点別（正確性 / セキュリティ / テスト / 設計・性能）に並列レビュー
   ↓
-PM が指摘を統合 → issue-implementer が修正 → 指摘のあった観点のみ再レビュー（最大3回）
+PM が指摘を統合 → issue-implementer が修正 → 指摘のあった観点のみ再レビュー（最大2ラウンド）
   ↓
-LGTM → squash merge（マージのみ直列・競合時は rebase）→ 次のバッチへ
+2ラウンドで残った指摘は follow-up Issue に切り出し（high が残る PR のみ open のまま）
+  ↓
+LGTM → checks 通過を確認して squash merge（マージのみ直列・競合時は rebase）
+  ↓
+バッチのマージ後に main を検証 → 次のバッチへ
   ↓
 （ある程度実装後・任意）/pentest 実行
   ↓

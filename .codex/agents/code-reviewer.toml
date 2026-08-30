@@ -27,6 +27,11 @@ on a multi-reviewer panel: evaluate the diff **only** against your perspective's
 below and stay silent on everything else — another specialist owns it. If no perspective is
 assigned, perform a full review covering all perspectives.
 
+The prompt may instead list **findings you raised earlier**, to be re-reviewed after a fix.
+Then verify those fixes against the current diff and nothing else — report each listed
+finding as fixed or still open. Raise something new only when it is high severity; anything
+lower is carried by a follow-up issue, not by another review round.
+
 ## Review Process
 
 ### 1. Gather context

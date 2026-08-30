@@ -8,6 +8,7 @@ description: |
   without merging. Invoke with `/issue-worker <issue-number>`.
 allowed-tools:
   - Bash
+  - Agent
   - Task
 ---
 
@@ -103,9 +104,25 @@ Then:
 - If the verdict is **LGTM**, skip to Step 5.
 - Otherwise, launch a **github-issue-implementer** agent with the consolidated findings list
   and the branch name, instructing it to apply the fixes on the existing branch and push.
-- Do this **exactly once**. Do **not** re-run the panel and do **not** loop. Any remaining or
-  newly surfaced findings are reported to the user in the final summary so a human reviewer
-  can decide on them.
+- Do this **exactly once**. Do **not** re-run the panel and do **not** loop.
+
+Record the verdict on the PR so the state survives this session, and carve out whatever the
+fix round did not settle:
+
+```bash
+gh pr comment <pr-number> --repo {{GITHUB_OWNER}}/{{GITHUB_REPO}} --body "$(cat <<'EOF'
+<!-- issue-worker -->
+Round 1: <LGTM | CHANGES REQUESTED>
+
+- [<severity>] <file:line> — <finding> (<perspective>)
+EOF
+)"
+```
+
+If findings remain after the fix round, create one follow-up issue holding them — the
+originating issue and PR, the branch, and each finding with its severity, `file:line`, and
+the perspective that raised it. Its dependency line is always `Depends on: none`: never make
+it depend on the issue it came from. Then report it in the summary.
 
 ### Step 5 — Stop with the PR open
 
@@ -125,7 +142,8 @@ Then:
 - Run the review panel only once, with at most one follow-up fix round.
 - Keep your own context small: fetch the issue body once, keep only the PR number, branch,
   and consolidated findings, and never paste full diffs or full agent reports into your
-  notes.
+  notes. Once the verdict is posted on the PR, drop the findings from your notes.
+- Never open a second fix round. What the first round leaves is a follow-up issue.
 - Never merge or close the PR; the end state is an open PR ready for human review.
 - Confirm each step's outcome before proceeding.
 - If any step fails unrecoverably, report the failure clearly and stop.
