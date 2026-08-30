@@ -211,7 +211,7 @@ issue-implementer（Tech Specialist）が Issue ごとに worktree で並列実�
   ↓
 code-reviewer が観点別（正確性 / セキュリティ / テスト / 設計・性能）に並列レビュー
   ↓
-PM が指摘を統合 → issue-implementer が修正 → 再レビュー（最大3回）
+PM が指摘を統合 → issue-implementer が修正 → 指摘のあった観点のみ再レビュー（最大3回）
   ↓
 LGTM → squash merge（マージのみ直列・競合時は rebase）→ 次のバッチへ
   ↓

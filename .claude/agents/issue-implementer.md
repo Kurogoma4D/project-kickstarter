@@ -87,6 +87,21 @@ Execute the following checks in order:
   - Appropriate labels matching the issue type
 - Ensure the PR is linked to the original issue for automatic closure upon merge
 
+# Context Budget
+
+Every tool result you collect is re-sent on each following turn, so a long session costs far
+more than a short one for the same change. Keep the run tight:
+
+- Read files by range (`sed -n '<start>,<end>p'`) or by symbol (`grep -n`). Read a file in
+  full only when it is short or you genuinely need all of it.
+- Run build, test, and lint commands in their quietest mode and keep their output short —
+  pipe it through `tail -n 40`, or write it to a file and grep that. Print a full log only
+  for a step that failed.
+- Batch independent shell commands into a single call.
+- Do not re-read a file you just wrote or edited to confirm the change landed.
+- Stop once the quality checks pass and the PR is open. Do not add verification passes,
+  refactors, or documentation the issue did not ask for.
+
 # Decision-Making Framework
 
 - **Scope Verification**: If the issue is ambiguous or lacks sufficient detail, request clarification before implementation

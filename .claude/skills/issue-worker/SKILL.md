@@ -70,14 +70,16 @@ run in parallel:
 
 ```
 Task tool (one call per perspective, same message):
-  subagent_type: general-purpose
+  subagent_type: code-reviewer
   prompt: |
-    You are a specialist code reviewer. Follow the instructions in
-    .claude/agents/code-reviewer.md with the assigned perspective below.
     Review PR #<pr-number> in the {{GITHUB_OWNER}}/{{GITHUB_REPO}} repository.
     Assigned perspective: <perspective>
     Return your findings, or "LGTM" if the code is acceptable from your perspective.
 ```
+
+Dispatch the `code-reviewer` agent by name — it already carries the review instructions and
+runs on its own model. A general-purpose agent pointed at the same instructions inherits
+your model instead, which makes the panel several times more expensive than it needs to be.
 
 Perspectives (one reviewer each):
 
@@ -121,6 +123,9 @@ Then:
   Your own Bash usage is limited to `gh` queries.
 - Work on exactly one issue — never loop to a second issue.
 - Run the review panel only once, with at most one follow-up fix round.
+- Keep your own context small: fetch the issue body once, keep only the PR number, branch,
+  and consolidated findings, and never paste full diffs or full agent reports into your
+  notes.
 - Never merge or close the PR; the end state is an open PR ready for human review.
 - Confirm each step's outcome before proceeding.
 - If any step fails unrecoverably, report the failure clearly and stop.

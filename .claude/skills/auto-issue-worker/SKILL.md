@@ -74,14 +74,16 @@ parallel:
 
 ```
 Task tool (one call per perspective per PR, same message):
-  subagent_type: general-purpose
+  subagent_type: code-reviewer
   prompt: |
-    You are a specialist code reviewer. Follow the instructions in
-    .claude/agents/code-reviewer.md with the assigned perspective below.
     Review PR #<pr-number> in the {{GITHUB_OWNER}}/{{GITHUB_REPO}} repository.
     Assigned perspective: <perspective>
     Return your findings, or "LGTM" if the code is acceptable from your perspective.
 ```
+
+Dispatch the `code-reviewer` agent by name — it already carries the review instructions and
+runs on its own model. A general-purpose agent pointed at the same instructions inherits
+your model instead, which makes the panel several times more expensive than it needs to be.
 
 Perspectives (one reviewer each):
 
@@ -106,10 +108,12 @@ For each PR with a CHANGES REQUESTED verdict:
 
 1. Launch a **github-issue-implementer** agent with the consolidated findings list and the
    branch name, instructing it to apply the fixes on the existing branch and push.
-2. Re-run only the perspectives that produced confirmed findings (not the full panel), then
-   consolidate again.
-3. Limit the loop to **3 rounds** per PR. If findings remain after 3 rounds, flag the PR to
-   the user in the final summary, leave it open, and move on.
+2. Re-run only the perspectives that produced confirmed findings — never the full panel.
+   Give each re-reviewer the findings it raised and ask it to verify just those fixes
+   against the current diff. Then consolidate again.
+3. Limit the loop to **3 rounds** per PR, and the whole PR to **8 reviewer agents** across
+   all rounds. If findings remain when either limit is reached, flag the PR to the user in
+   the final summary, leave it open, and move on.
 
 Fix loops for different PRs are independent — run their fix agents and re-reviews in
 parallel too.
@@ -146,6 +150,14 @@ start the next batch.
 - Always confirm each step's outcome before proceeding to the next.
 - If any step fails unrecoverably for an issue, report it clearly and continue with the
   remaining issues.
+- Keep your own context small — it is re-sent on every turn of a run that spans many
+  batches:
+  - Fetch issue bodies once in Step 1. For later progress checks use
+    `--json number,title,state` and rely on your notes for the rest.
+  - Keep only what you need per PR: number, branch, and the consolidated findings. Never
+    paste full diffs or full agent reports into your notes.
+  - Specialists and reviewers report back in summary form; do not ask them for transcripts
+    or full file contents.
 - Provide a brief progress summary after each batch (issues processed, PRs merged, anything
   skipped or flagged).
 - At the end, provide a final summary of all issues processed and their outcomes, including
