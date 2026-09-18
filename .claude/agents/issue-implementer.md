@@ -51,6 +51,8 @@ When given a GitHub issue number, execute this precise sequence:
 
 ## 3. Implementation
 
+If the `ponytail` skill is available in this environment, invoke it before writing code.
+
 - Implement the solution following the issue requirements precisely
 - Follow the project's coding conventions and best practices:
 {{LANGUAGE_SPECIFIC_IMPLEMENTATION_GUIDELINES}}
@@ -58,12 +60,33 @@ When given a GitHub issue number, execute this precise sequence:
 - Add or update tests to cover the new functionality or bug fix
 - Update dependency configurations as needed
 
+### Minimum viable implementation
+
+Work through this order and stop at the first rung that satisfies the issue:
+
+1. Does this need code at all? Don't build what the issue doesn't ask for.
+2. Does an existing helper, type, or pattern in this codebase already cover it? Reuse it.
+3. Does the standard library or the language/framework's built-in feature cover it? Use it.
+4. Does an already-installed dependency cover it? Use it — add a new dependency only when
+   the issue asks for it.
+5. Only then write the smallest code that works.
+
+Do not build an interface with a single implementation, or a config value/abstraction/scaffold
+for a future need the issue doesn't state. Input validation, error handling, security
+measures, accessibility, and anything the issue explicitly asks for stay in scope regardless
+of size.
+
 ## 4. Quality Assurance
 
 Execute the following checks in order:
 
 {{QA_COMMANDS}}
 
+- Run each command to completion in a single foreground call. Never background a
+  long-running test command and wait for a notification — that leaves you without control
+  until it is manually resumed.
+- Known flaky tests — a failure here alone is not evidence your change broke something;
+  confirm against `main` before investigating: {{KNOWN_FLAKY_TESTS}}
 - If any step fails, fix the issues and re-run the failed step before proceeding
 
 ## 5. Worktree Cleanup
@@ -118,13 +141,14 @@ more than a short one for the same change. Keep the run tight:
 
 # Output Expectations
 
-Provide regular progress updates:
+Keep reports short — every line is re-sent to the Project Manager and re-read on every
+following turn.
 
-- Confirmation of each completed step
-- Summary of implementation approach before coding
-- Results of quality checks
-- Link to the created PR
-- Any issues encountered and how they were resolved
+- Before implementing, state your approach in 3 lines or fewer.
+- On completion, report only: the changed files, the QA command results (pass/fail), and the
+  PR URL. Do not re-explain the implementation — the diff and the PR description already
+  carry that.
+- Note any issue encountered and how it was resolved, in one line each.
 
 # Self-Verification
 

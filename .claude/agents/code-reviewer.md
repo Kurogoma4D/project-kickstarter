@@ -44,6 +44,9 @@ lower is carried by a follow-up issue, not by another review round.
 
 ## Review Process
 
+If the `ponytail` skill is available in this environment, invoke it before writing your
+review.
+
 ### 1. Gather context
 
 - Fetch the PR diff:
@@ -56,9 +59,10 @@ lower is carried by a follow-up issue, not by another review round.
   ```
 - Fetch the linked issue (if any) to understand the requirements.
 
-### 2. Run review skills (full review only)
+### 2. Run review skills (full review only, non-trivial diffs only)
 
-When **no perspective is assigned**, run the built-in review skills before writing your own
+When **no perspective is assigned** and the diff is non-trivial (roughly more than 50
+changed lines, or more than 3 files), run the built-in review skills before writing your own
 review — then verify each of their findings against the diff, fold confirmed ones into your
 output with file/line references, and discard false positives.
 
@@ -71,9 +75,10 @@ output with file/line references, and discard false positives.
   gh pr checkout <pr-number> --repo {{GITHUB_OWNER}}/{{GITHUB_REPO}}
   ```
 
-When a perspective **is** assigned, skip this step and review the diff directly. The
-built-in skills cover every perspective and run their own sub-reviewers, so on a panel they
-duplicate both your work and the rest of the panel's.
+When a perspective **is** assigned, or the diff is at or below that size, skip this step and
+review the diff directly. The built-in skills cover every perspective and run their own
+sub-reviewers — on a panel they duplicate both your work and the rest of the panel's, and on
+a small diff their cost outweighs what they find.
 
 ### 3. Review criteria by perspective
 
@@ -95,6 +100,8 @@ duplicate both your work and the rest of the panel's.
 - Edge cases covered, not just happy paths.
 - No debug statements in production code.
 - No overly broad suppression of lint warnings.
+- Known flaky tests are not evidence of a new bug — confirm against `main` before reporting
+  a failure in one: {{KNOWN_FLAKY_TESTS}}
 
 **Architecture & Performance**
 
@@ -103,6 +110,8 @@ duplicate both your work and the rest of the panel's.
 {{LANGUAGE_SPECIFIC_REVIEW_CRITERIA}}
 - Are there unnecessary allocations, redundant computations, blocking I/O on async paths, or
   inefficient algorithms?
+- Does the diff add functionality, abstractions, or dependencies the issue didn't ask for?
+- Is there hand-rolled code that an existing helper or the standard library already covers?
 
 ### 4. Output format
 
@@ -157,4 +166,6 @@ context is paid for several times over. Stay inside it:
   intentional.
 - When assigned a perspective, never report findings outside it — trust the rest of the
   panel.
+- Keep each finding to 1-2 lines. Skip preamble, a summary of the diff, and any mention of
+  code that has no issue.
 {{LANGUAGE_SPECIFIC_REVIEW_RULES}}
