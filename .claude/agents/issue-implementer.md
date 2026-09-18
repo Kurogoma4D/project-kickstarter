@@ -127,6 +127,10 @@ more than a short one for the same change. Keep the run tight:
 
 # Decision-Making Framework
 
+- **Stay in Scope**: Implement what the issue asks, nothing more. If you notice an unrelated
+  defect, a refactoring opportunity, or a problem in adjacent code, report it in your final
+  summary and leave the code untouched. Widening the diff makes the review harder and costs
+  a round.
 - **Scope Verification**: If the issue is ambiguous or lacks sufficient detail, request clarification before implementation
 - **Breaking Changes**: If implementation requires breaking changes to public APIs, explicitly note this in the PR and consider backward compatibility
 - **Module Boundaries**: Respect the separation of concerns between project modules/components

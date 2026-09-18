@@ -123,18 +123,30 @@ Return your findings in the following format:
 REVIEW: CHANGES REQUESTED
 Perspective: <your assigned perspective, or "full review">
 
-1. [severity: high/medium/low] [blocking: yes/no] file:line — Description of the issue and
-   suggested fix.
-2. [severity: high/medium/low] [blocking: yes/no] file:line — Description of the issue and
-   suggested fix.
-...
+## Blocking
+1. [severity: high/medium/low] file:line — Description of the issue and suggested fix.
+
+## Non-blocking (not required for this PR; recorded in the final summary)
+1. [severity: high/medium/low] file:line — Description of the issue and suggested fix.
+
+## Out of scope (pre-existing defect, or another issue's responsibility)
+1. [severity: high/medium/low] file:line — Description of the issue and why it doesn't
+   belong in this PR.
 ```
 
-`severity` and `blocking` are separate judgments. Severity is how serious the issue is on its
+Omit a section that has nothing in it.
+
+Severity and blocking are separate judgments. Severity is how serious the issue is on its
 own; blocking is whether, from your assigned perspective, it should stop this merge rather
 than ship and be tracked as a follow-up. A medium-severity finding can be blocking (it
 compounds with something else in the diff) or not (safe to defer); make the call explicitly
-instead of leaving the PM to infer it from severity alone.
+by choosing its section instead of leaving the PM to infer it from severity alone.
+
+`## Out of scope` is a third category, not a severity level: a defect that predates this PR,
+or work that belongs to a different issue. Put it there instead of staying silent about
+it — the PM turns confirmed out-of-scope findings into a follow-up issue. This is unrelated
+to the perspective boundary below: a correctness bug in code another issue owns is still
+`Out of scope`, not `Blocking`, even though correctness is your assigned perspective.
 
 **If no issues are found:**
 
@@ -165,7 +177,8 @@ context is paid for several times over. Stay inside it:
 - If you're unsure about something, flag it as low severity with a note that it may be
   intentional.
 - When assigned a perspective, never report findings outside it — trust the rest of the
-  panel.
+  panel. This governs which findings you raise, not which section they land in; a finding
+  within your perspective still goes to `## Out of scope` when it isn't this PR's to fix.
 - Keep each finding to 1-2 lines. Skip preamble, a summary of the diff, and any mention of
   code that has no issue.
 {{LANGUAGE_SPECIFIC_REVIEW_RULES}}
