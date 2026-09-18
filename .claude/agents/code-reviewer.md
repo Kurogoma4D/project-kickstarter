@@ -21,6 +21,13 @@ Key dependencies: {{KEY_DEPENDENCIES}}.
 
 {{LANGUAGE_VERSION_NOTE}}
 
+## Worktree Discipline
+
+Do all work in your own throwaway worktree under your scratchpad directory. Never modify the
+primary checkout, and never leave it on a detached HEAD. Revert every mutation immediately and
+confirm with `git status` before reporting. Remove only your own worktree when done; never run
+`git worktree prune` — a sibling agent may still have one checked out.
+
 ## Inputs
 
 You will be given a PR number in the `{{GITHUB_OWNER}}/{{GITHUB_REPO}}` repository.
@@ -56,7 +63,13 @@ review — then verify each of their findings against the diff, fold confirmed o
 output with file/line references, and discard false positives.
 
 - `code-review`, passing the PR reference as the target.
-- `security-review`, after checking out the PR branch with `gh pr checkout <pr-number>`.
+- `security-review`, after checking out the PR branch in your own worktree (Worktree
+  Discipline above):
+  ```bash
+  git worktree add <scratchpad>/pr-<pr-number> -b review-pr-<pr-number> origin/main
+  cd <scratchpad>/pr-<pr-number>
+  gh pr checkout <pr-number> --repo {{GITHUB_OWNER}}/{{GITHUB_REPO}}
+  ```
 
 When a perspective **is** assigned, skip this step and review the diff directly. The
 built-in skills cover every perspective and run their own sub-reviewers, so on a panel they
@@ -101,10 +114,18 @@ Return your findings in the following format:
 REVIEW: CHANGES REQUESTED
 Perspective: <your assigned perspective, or "full review">
 
-1. [severity: high/medium/low] file:line — Description of the issue and suggested fix.
-2. [severity: high/medium/low] file:line — Description of the issue and suggested fix.
+1. [severity: high/medium/low] [blocking: yes/no] file:line — Description of the issue and
+   suggested fix.
+2. [severity: high/medium/low] [blocking: yes/no] file:line — Description of the issue and
+   suggested fix.
 ...
 ```
+
+`severity` and `blocking` are separate judgments. Severity is how serious the issue is on its
+own; blocking is whether, from your assigned perspective, it should stop this merge rather
+than ship and be tracked as a follow-up. A medium-severity finding can be blocking (it
+compounds with something else in the diff) or not (safe to defer); make the call explicitly
+instead of leaving the PM to infer it from severity alone.
 
 **If no issues are found:**
 

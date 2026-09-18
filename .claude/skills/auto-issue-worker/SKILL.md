@@ -115,6 +115,11 @@ Task tool (one call per perspective per PR, same message):
     Review PR #<pr-number> in the {{GITHUB_OWNER}}/{{GITHUB_REPO}} repository.
     Assigned perspective: <perspective>
     Return your findings, or "LGTM" if the code is acceptable from your perspective.
+
+    Do all work in your own throwaway worktree under your scratchpad directory.
+    Never modify the primary checkout, and never leave it on a detached HEAD.
+    Revert every mutation immediately and confirm with `git status` before reporting.
+    Remove only your own worktree; never run `git worktree prune`.
 ```
 
 Dispatch the `code-reviewer` agent by name — it already carries the review instructions and
@@ -135,8 +140,17 @@ You, as PM, merge each PR's four reviews into one verdict:
 - Deduplicate findings that multiple reviewers reported (same file/line or same root cause).
 - Verify questionable findings against the actual diff (`gh pr diff <pr-number>`) — discard
   false positives and pure style nitpicks.
-- The verdict is **LGTM** only if no confirmed findings of medium or high severity remain.
-  Confirmed low-severity findings may be noted in the final summary instead of blocking.
+- Each finding carries two separate judgments: **severity** (how serious the issue is) and
+  **blocking** (whether the reviewer who raised it thinks it should stop this merge).
+  Reviewers can disagree on blocking for what looks like the same finding — trust each
+  reviewer's own blocking call for the finding they raised rather than re-deriving it from
+  severity alone.
+- The verdict is **CHANGES REQUESTED** if any confirmed finding is high severity, or if any
+  confirmed finding is marked blocking. Otherwise the verdict is **LGTM**; confirmed
+  medium/low, non-blocking findings are noted in the final summary instead of blocking merge.
+  (Findings that split by severity across perspectives on the same PR — one calls it
+  blocking, another doesn't — are an over-broad-finding problem tracked separately; this rule
+  only decides the merge verdict.)
 
 Record every consolidation on the PR itself, so the state survives this session:
 
@@ -145,7 +159,7 @@ gh pr comment <pr-number> --repo {{GITHUB_OWNER}}/{{GITHUB_REPO}} --body "$(cat 
 <!-- auto-issue-worker -->
 Round <n>: <LGTM | CHANGES REQUESTED>
 
-- [<severity>] <file:line> — <finding> (<perspective>)
+- [<severity>/<blocking>] <file:line> — <finding> (<perspective>)
 EOF
 )"
 ```
@@ -157,22 +171,45 @@ from your own notes.
 
 For each PR with a CHANGES REQUESTED verdict:
 
-1. Launch a **github-issue-implementer** agent with the consolidated findings list and the
+1. Before dispatching, sanity-check any factual claim a finding relies on beyond "this is
+   present in the diff" — a library/API's actual behavior, or an assertion that some risk is
+   already handled elsewhere in the code. Confirm what you can yourself with a quick `grep`
+   or doc lookup. Mark anything you cannot confirm as `[unverified]` in the findings you hand
+   off, and tell the specialist to verify it before applying the fix — an unverified claim
+   that turns out wrong becomes a bug you asked for.
+2. Launch a **github-issue-implementer** agent with the consolidated findings list and the
    branch name, instructing it to apply the fixes on the existing branch and push.
-2. Re-review with **only** the perspectives that produced confirmed findings — never the
+3. Re-review with **only** the perspectives that produced confirmed findings — never the
    full panel. Give each re-reviewer the exact findings it raised and tell it to verify
    those fixes and nothing else; in a re-review a new finding is reported only if it is high
    severity. Then consolidate again and record the round (Step 4).
-3. Run at most **2 fix rounds** per PR, and at most **8 reviewer agents** across all rounds.
+4. Run at most **2 fix rounds** per PR, and at most **8 reviewer agents** across all rounds.
 
 Fix loops for different PRs are independent — run their fix agents and re-reviews in
 parallel too.
 
+#### Descope instead of a second fix attempt
+
+Before launching round 2's fix, compare its target findings against round 1's. If a finding
+shares its root cause with one from round 1 — same file/design decision, not just the same
+symptom — round 1's fix already tried to close it and another path reopened. A second attempt
+at the same design is unlikely to hold either; the fix that converges is usually cutting the
+implicated feature out of the PR, not adding another gate around it.
+
+When this trigger fires:
+
+- Direct the specialist to descope — remove the implicated feature from the PR — rather than
+  patch it again.
+- Keep the original issue open; do not let the descoped PR close it.
+- File a follow-up issue (template below) for the descoped work.
+- Record the decision and its reasoning in the final summary — this is a PM judgment call,
+  not an automatic rule.
+
 #### When findings remain after the second round, or the reviewer cap is reached
 
-Stop iterating and carve the remainder out into its own issue. A third round costs more than
-it converges: each one re-reads the whole diff and tends to surface new findings rather than
-close the old ones.
+Stop iterating and carve the remainder out into its own issue — the same follow-up path used
+for a descope. A third round costs more than it converges: each one re-reads the whole diff
+and tends to surface new findings rather than close the old ones.
 
 ```bash
 gh issue create --repo {{GITHUB_OWNER}}/{{GITHUB_REPO}} \
@@ -187,7 +224,7 @@ Originating issue: #<issue-number>
 PR: #<pr-number> (branch `<branch>`)
 
 ## Remaining findings
-- [<severity>] <file:line> — <finding> (<perspective>)
+- [<severity>/<blocking>] <file:line> — <finding> (<perspective>)
 
 ## Dependencies
 Depends on: none
@@ -198,7 +235,8 @@ EOF
 The follow-up issue's dependency line is always `none`. Never make it depend on the issue it
 came from — that recreates the block it exists to remove.
 
-Then decide the PR by the highest remaining severity:
+Then decide the PR by the highest remaining severity (a descoped PR is judged on what is left
+in it after the cut):
 
 - **high** — leave the PR open and do not merge it. Report it for human attention, and name
   the issues that stay blocked behind it.
@@ -206,7 +244,7 @@ Then decide the PR by the highest remaining severity:
   carries the rest, and the issues depending on it are unblocked.
 
 Post the follow-up issue number as a PR comment in the Step 4 format, then move on. Never
-start a third round.
+start a third fix round.
 
 ### Step 6 — Merge (serialized)
 
@@ -235,6 +273,12 @@ gh pr merge <pr-number> --repo {{GITHUB_OWNER}}/{{GITHUB_REPO}} --squash --delet
 
 ### Step 7 — Verify `main` after the batch
 
+A batch is **complete** once every PR it produced has reached a terminal state for this run:
+merged (Step 6), left open for human attention (a high-severity Step 5 hold or a Step 6 merge
+failure), or turned into a follow-up issue plus a resumable PR comment (Step 5). This does not
+require every PR to have merged — a batch with PRs left open for human attention is still
+complete, and those PRs are no longer in flight (Rules) once their outcome is recorded.
+
 Branches that merge cleanly can still break together — two issues registering the same
 module, colliding dependency versions, a rename that only half the batch followed. Once the
 batch's merges are done, verify `main` once:
@@ -255,11 +299,17 @@ start the next batch.
 ## Rules
 
 - **Never implement or fix code yourself** — always delegate to a Tech Specialist agent.
-  Your own Bash usage is limited to `gh` queries, merges, and the Step 7 verification
-  commands.
+  Your own Bash usage is limited to `gh` queries, merges, the Step 7 verification commands,
+  and git repository-hygiene commands (`git status`, `git worktree list`, `git worktree
+  remove`, `git checkout main`, `git restore`) to recover the primary checkout or remove a
+  stale worktree left behind by a specialist or reviewer. Hygiene commands never write or fix
+  code — if a fix is needed, delegate it.
 - **Never start a third fix round on a PR.** Findings that survive two rounds become a
-  follow-up issue.
-- Keep at most **3 issues in flight** at once.
+  follow-up issue or a descope (Step 5).
+- Keep at most **3 issues in flight** at once. In flight means an issue whose PR is still
+  moving through Step 2–6 of the *current* batch. A PR a previous batch left open for human
+  attention, or one already resolved into a follow-up issue and a resumable PR comment
+  (Step 5, Step 7), is no longer in flight and does not count against this cap.
 - Issues in the same batch must be mutually independent (no dependency edges between them).
 - Always confirm each step's outcome before proceeding to the next.
 - If any step fails unrecoverably for an issue, report it clearly and continue with the
@@ -275,4 +325,5 @@ start the next batch.
 - Provide a brief progress summary after each batch (issues processed, PRs merged, anything
   skipped or flagged).
 - At the end, provide a final summary of all issues processed and their outcomes, including
-  any PRs left open for human attention.
+  any PRs left open for human attention and any PR that was descoped (Step 5), with the
+  reasoning for that decision.
