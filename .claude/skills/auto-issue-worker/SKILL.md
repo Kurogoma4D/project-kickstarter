@@ -167,6 +167,14 @@ into one verdict:
   (Findings that split by severity across perspectives on the same PR — one calls it
   blocking, another doesn't — are an over-broad-finding problem tracked separately; this rule
   only decides the merge verdict.)
+- Collect every reviewer's `## Out of scope` findings across the panel and deduplicate them
+  the same way. These never affect the verdict above. When the panel reported at least one,
+  file it as a follow-up issue using the `gh issue create` template from Step 5, with the
+  summary line "Out-of-scope findings raised while reviewing PR #<pr-number>.", the
+  `## Remaining findings` heading renamed to `## Out-of-scope findings`, and each line as
+  `[<severity>] <file:line> — <finding> (<perspective>)` (no `blocking` tag — these are
+  out of scope, not a merge decision). A later round's new out-of-scope findings are added as
+  lines to that same issue, not a second issue.
 
 Record every consolidation on the PR itself, so the state survives this session:
 
@@ -176,6 +184,7 @@ gh pr comment <pr-number> --repo {{GITHUB_OWNER}}/{{GITHUB_REPO}} --body "$(cat 
 Round <n>: <LGTM | CHANGES REQUESTED>
 
 - [<severity>/<blocking>] <file:line> — <finding> (<perspective>)
+Out-of-scope follow-up: #<issue-number> (omit if none this round)
 EOF
 )"
 ```
