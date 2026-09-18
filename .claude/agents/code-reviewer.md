@@ -102,6 +102,10 @@ a small diff their cost outweighs what they find.
 - No overly broad suppression of lint warnings.
 - Known flaky tests are not evidence of a new bug — confirm against `main` before reporting
   a failure in one: {{KNOWN_FLAKY_TESTS}}
+- Comments that restate what the code does rather than why.
+- Comments narrating change history ("previously", "used to", review-round references).
+- Comments whose stated rationale is factually wrong — verify load-bearing claims rather
+  than assuming the author checked.
 
 **Architecture & Performance**
 

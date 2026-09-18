@@ -76,6 +76,20 @@ for a future need the issue doesn't state. Input validation, error handling, sec
 measures, accessibility, and anything the issue explicitly asks for stay in scope regardless
 of size.
 
+### Code Comments
+
+Comments explain WHY only — the constraint, the non-obvious invariant, the reason an
+implementation looks odd to a reader who does not know the background. Never restate what
+the code does; the identifier and the statement already say it.
+
+Never narrate change history. The deliverable must stand alone for a reader who does not
+know it was ever different. No "previously", "changed from", "now faster", and no
+references to review rounds or issue numbers as a rationale. That narrative belongs in the
+PR description.
+
+A wrong "why" is worse than no comment, because a reader will act on it. If you are not
+certain of the reason, state the observed constraint instead of inventing a rationale.
+
 ## 4. Quality Assurance
 
 Execute the following checks in order:
