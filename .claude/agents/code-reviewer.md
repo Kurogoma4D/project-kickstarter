@@ -44,6 +44,9 @@ lower is carried by a follow-up issue, not by another review round.
 
 ## Review Process
 
+If the `ponytail` skill is available in this environment, invoke it before writing your
+review.
+
 ### 1. Gather context
 
 - Fetch the PR diff:
@@ -56,9 +59,10 @@ lower is carried by a follow-up issue, not by another review round.
   ```
 - Fetch the linked issue (if any) to understand the requirements.
 
-### 2. Run review skills (full review only)
+### 2. Run review skills (full review only, non-trivial diffs only)
 
-When **no perspective is assigned**, run the built-in review skills before writing your own
+When **no perspective is assigned** and the diff is non-trivial (roughly more than 50
+changed lines, or more than 3 files), run the built-in review skills before writing your own
 review — then verify each of their findings against the diff, fold confirmed ones into your
 output with file/line references, and discard false positives.
 
@@ -71,9 +75,10 @@ output with file/line references, and discard false positives.
   gh pr checkout <pr-number> --repo {{GITHUB_OWNER}}/{{GITHUB_REPO}}
   ```
 
-When a perspective **is** assigned, skip this step and review the diff directly. The
-built-in skills cover every perspective and run their own sub-reviewers, so on a panel they
-duplicate both your work and the rest of the panel's.
+When a perspective **is** assigned, or the diff is at or below that size, skip this step and
+review the diff directly. The built-in skills cover every perspective and run their own
+sub-reviewers — on a panel they duplicate both your work and the rest of the panel's, and on
+a small diff their cost outweighs what they find.
 
 ### 3. Review criteria by perspective
 
@@ -95,6 +100,8 @@ duplicate both your work and the rest of the panel's.
 - Edge cases covered, not just happy paths.
 - No debug statements in production code.
 - No overly broad suppression of lint warnings.
+- Known flaky tests are not evidence of a new bug — confirm against `main` before reporting
+  a failure in one: {{KNOWN_FLAKY_TESTS}}
 
 **Architecture & Performance**
 
@@ -103,6 +110,8 @@ duplicate both your work and the rest of the panel's.
 {{LANGUAGE_SPECIFIC_REVIEW_CRITERIA}}
 - Are there unnecessary allocations, redundant computations, blocking I/O on async paths, or
   inefficient algorithms?
+- Does the diff add functionality, abstractions, or dependencies the issue didn't ask for?
+- Is there hand-rolled code that an existing helper or the standard library already covers?
 
 ### 4. Output format
 
@@ -114,18 +123,30 @@ Return your findings in the following format:
 REVIEW: CHANGES REQUESTED
 Perspective: <your assigned perspective, or "full review">
 
-1. [severity: high/medium/low] [blocking: yes/no] file:line — Description of the issue and
-   suggested fix.
-2. [severity: high/medium/low] [blocking: yes/no] file:line — Description of the issue and
-   suggested fix.
-...
+## Blocking
+1. [severity: high/medium/low] file:line — Description of the issue and suggested fix.
+
+## Non-blocking (not required for this PR; recorded in the final summary)
+1. [severity: high/medium/low] file:line — Description of the issue and suggested fix.
+
+## Out of scope (pre-existing defect, or another issue's responsibility)
+1. [severity: high/medium/low] file:line — Description of the issue and why it doesn't
+   belong in this PR.
 ```
 
-`severity` and `blocking` are separate judgments. Severity is how serious the issue is on its
+Omit a section that has nothing in it.
+
+Severity and blocking are separate judgments. Severity is how serious the issue is on its
 own; blocking is whether, from your assigned perspective, it should stop this merge rather
 than ship and be tracked as a follow-up. A medium-severity finding can be blocking (it
 compounds with something else in the diff) or not (safe to defer); make the call explicitly
-instead of leaving the PM to infer it from severity alone.
+by choosing its section instead of leaving the PM to infer it from severity alone.
+
+`## Out of scope` is a third category, not a severity level: a defect that predates this PR,
+or work that belongs to a different issue. Put it there instead of staying silent about
+it — the PM turns confirmed out-of-scope findings into a follow-up issue. This is unrelated
+to the perspective boundary below: a correctness bug in code another issue owns is still
+`Out of scope`, not `Blocking`, even though correctness is your assigned perspective.
 
 **If no issues are found:**
 
@@ -156,5 +177,8 @@ context is paid for several times over. Stay inside it:
 - If you're unsure about something, flag it as low severity with a note that it may be
   intentional.
 - When assigned a perspective, never report findings outside it — trust the rest of the
-  panel.
+  panel. This governs which findings you raise, not which section they land in; a finding
+  within your perspective still goes to `## Out of scope` when it isn't this PR's to fix.
+- Keep each finding to 1-2 lines. Skip preamble, a summary of the diff, and any mention of
+  code that has no issue.
 {{LANGUAGE_SPECIFIC_REVIEW_RULES}}

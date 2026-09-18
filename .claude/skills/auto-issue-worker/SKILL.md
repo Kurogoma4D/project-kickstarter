@@ -104,13 +104,35 @@ Task tool (one call per issue, same message):
 
 ### Step 3 — Review each PR with a specialist panel
 
-For every PR produced by the batch, launch the review panel. All reviewers — across all
+**Select perspectives per PR** — the panel size follows what the diff actually touches, not
+a fixed count. For each PR:
+
+```bash
+gh pr diff <pr-number> --repo {{GITHUB_OWNER}}/{{GITHUB_REPO}} --name-only
+gh pr view <pr-number> --repo {{GITHUB_OWNER}}/{{GITHUB_REPO}} --json additions,deletions,changedFiles
+```
+
+- Always dispatch: **Correctness & Requirements**, **Testing & Quality**.
+- Dispatch **Security** only if the diff touches dependency manifests, process spawning,
+  file/network I/O, authentication, or configuration resolution.
+- Dispatch **Architecture & Performance** only if the diff touches new types, module
+  boundaries, or a hot path.
+
+Perspectives (criteria for each):
+
+1. **Correctness & Requirements** — does the change do what the issue asks; bugs, edge cases, error paths
+2. **Security** — injection, path traversal, unsafe operations, dependency risks
+3. **Testing & Quality** — test coverage, edge-case tests, lint hygiene, debug leftovers
+4. **Architecture & Performance** — design fit with the codebase, maintainability, inefficiencies, over-implementation
+
+For every PR produced by the batch, launch the selected panel. All reviewers — across all
 perspectives **and across all PRs in the batch** — go in a single message so they run in
 parallel:
 
 ```
-Task tool (one call per perspective per PR, same message):
+Task tool (one call per selected perspective per PR, same message):
   subagent_type: code-reviewer
+  model: <haiku if only the two always-on perspectives were selected for this PR, otherwise omit>
   prompt: |
     Review PR #<pr-number> in the {{GITHUB_OWNER}}/{{GITHUB_REPO}} repository.
     Assigned perspective: <perspective>
@@ -126,16 +148,10 @@ Dispatch the `code-reviewer` agent by name — it already carries the review ins
 runs on its own model. A general-purpose agent pointed at the same instructions inherits
 your model instead, which makes the panel several times more expensive than it needs to be.
 
-Perspectives (one reviewer each):
-
-1. **Correctness & Requirements** — does the change do what the issue asks; bugs, edge cases, error paths
-2. **Security** — injection, path traversal, unsafe operations, dependency risks
-3. **Testing & Quality** — test coverage, edge-case tests, lint hygiene, debug leftovers
-4. **Architecture & Performance** — design fit with the codebase, maintainability, inefficiencies
-
 ### Step 4 — Consolidate findings (Project Manager)
 
-You, as PM, merge each PR's four reviews into one verdict:
+You, as PM, merge each PR's reviews (from whichever perspectives were dispatched in Step 3)
+into one verdict:
 
 - Deduplicate findings that multiple reviewers reported (same file/line or same root cause).
 - Verify questionable findings against the actual diff (`gh pr diff <pr-number>`) — discard
@@ -151,6 +167,14 @@ You, as PM, merge each PR's four reviews into one verdict:
   (Findings that split by severity across perspectives on the same PR — one calls it
   blocking, another doesn't — are an over-broad-finding problem tracked separately; this rule
   only decides the merge verdict.)
+- Collect every reviewer's `## Out of scope` findings across the panel and deduplicate them
+  the same way. These never affect the verdict above. When the panel reported at least one,
+  file it as a follow-up issue using the `gh issue create` template from Step 5, with the
+  summary line "Out-of-scope findings raised while reviewing PR #<pr-number>.", the
+  `## Remaining findings` heading renamed to `## Out-of-scope findings`, and each line as
+  `[<severity>] <file:line> — <finding> (<perspective>)` (no `blocking` tag — these are
+  out of scope, not a merge decision). A later round's new out-of-scope findings are added as
+  lines to that same issue, not a second issue.
 
 Record every consolidation on the PR itself, so the state survives this session:
 
@@ -160,6 +184,7 @@ gh pr comment <pr-number> --repo {{GITHUB_OWNER}}/{{GITHUB_REPO}} --body "$(cat 
 Round <n>: <LGTM | CHANGES REQUESTED>
 
 - [<severity>/<blocking>] <file:line> — <finding> (<perspective>)
+Out-of-scope follow-up: #<issue-number> (omit if none this round)
 EOF
 )"
 ```
@@ -179,10 +204,13 @@ For each PR with a CHANGES REQUESTED verdict:
    that turns out wrong becomes a bug you asked for.
 2. Launch a **github-issue-implementer** agent with the consolidated findings list and the
    branch name, instructing it to apply the fixes on the existing branch and push.
-3. Re-review with **only** the perspectives that produced confirmed findings — never the
-   full panel. Give each re-reviewer the exact findings it raised and tell it to verify
-   those fixes and nothing else; in a re-review a new finding is reported only if it is high
-   severity. Then consolidate again and record the round (Step 4).
+3. Re-review only the perspectives that still have an unresolved confirmed finding after the
+   fix — not every perspective that raised one originally. A perspective whose findings the
+   fix closed is done; re-dispatch it only if a later round's fix touches territory inside
+   that perspective's own criteria. Give each re-reviewer the exact findings it raised to
+   verify, plus a short summary of the findings other perspectives raised this round with an
+   instruction not to re-investigate them; in a re-review a new finding is reported only if
+   it is high severity. Then consolidate again and record the round (Step 4).
 4. Run at most **2 fix rounds** per PR, and at most **8 reviewer agents** across all rounds.
 
 Fix loops for different PRs are independent — run their fix agents and re-reviews in

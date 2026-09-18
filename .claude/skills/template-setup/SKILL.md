@@ -92,6 +92,7 @@ confidently derived from `spec.md`. Collect a value for **every** placeholder fo
 | `LANGUAGE_SPECIFIC_REVIEW_RULES` | Language-specific review rules (for code-reviewer) |
 | `LANGUAGE_SPECIFIC_IMPLEMENTATION_GUIDELINES` | Implementation guidelines (for issue-implementer) |
 | `QA_COMMANDS` | QA commands run before a PR (build, lint, format, test) |
+| `KNOWN_FLAKY_TESTS` | Known unstable tests/suites that can fail without a real regression (default: "none known") |
 
 Rules:
 
